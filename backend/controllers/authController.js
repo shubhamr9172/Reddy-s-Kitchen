@@ -6,7 +6,7 @@ const crypto = require('crypto');
 const mojoauth = require('mojoauth-sdk');
 
 const ma = mojoauth({
-    apiKey: process.env.MOJOAUTH_API_KEY || "test-4c796e67-3bbd-41f5-9dfb-296e383401fa",
+    apiKey: process.env.MOJOAUTH_API_KEY || "701ee29d-271f-4195-9105-fd966c80fcae",
 });
 
 // Generate 6-digit OTP
@@ -101,7 +101,7 @@ const verifyMojoToken = async (req, res) => {
 
     try {
         const response = await ma.mojoAPI.verifyToken(mojoToken);
-        
+
         if (!response || !response.authenticated) {
             return res.status(401).json({ message: 'MojoAuth verification failed' });
         }
