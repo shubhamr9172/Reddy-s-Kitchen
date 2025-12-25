@@ -94,6 +94,8 @@ const verifyOTP = async (req, res) => {
 
 const verifyMojoToken = async (req, res) => {
     const { mojoToken } = req.body;
+    console.log('--- MojoAuth Verification Start ---');
+    console.log('Received Token Length:', mojoToken ? mojoToken.length : 0);
 
     if (!mojoToken) {
         return res.status(400).json({ message: 'MojoAuth token is required' });
@@ -101,12 +103,15 @@ const verifyMojoToken = async (req, res) => {
 
     try {
         const response = await ma.mojoAPI.verifyToken(mojoToken);
+        console.log('MojoAuth SDK Response:', JSON.stringify(response));
 
         if (!response || !response.authenticated) {
-            return res.status(401).json({ message: 'MojoAuth verification failed' });
+            console.error('MojoAuth: Not Authenticated');
+            return res.status(401).json({ message: 'MojoAuth verification failed at provider' });
         }
 
         const email = response.user.identifier;
+        console.log('MojoAuth verified email:', email);
 
         // Find or create user
         let user = await User.findOne({ email });
