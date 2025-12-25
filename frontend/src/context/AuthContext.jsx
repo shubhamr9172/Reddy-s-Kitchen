@@ -27,13 +27,19 @@ export const AuthProvider = ({ children }) => {
         return data;
     };
 
+    const loginWithMojo = async (mojoToken) => {
+        const { data } = await api.post('/auth/verify-mojo', { mojoToken });
+        setUser(data);
+        return data;
+    };
+
     const logout = async () => {
         await api.post('/auth/logout');
         setUser(null);
     };
 
     return (
-        <AuthContext.Provider value={{ user, setUser, loading, login, logout }}>
+        <AuthContext.Provider value={{ user, setUser, loading, login, loginWithMojo, logout }}>
             {children}
         </AuthContext.Provider>
     );
