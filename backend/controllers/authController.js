@@ -138,8 +138,17 @@ const verifyMojoToken = async (req, res) => {
             groupId: user.groupId,
         });
     } catch (error) {
-        console.error('MojoAuth Error:', error);
-        res.status(401).json({ message: 'Invalid token' });
+        console.error('--- MojoAuth SDK Error Details ---');
+        console.error('Error Name:', error.name);
+        console.error('Error Message:', error.message);
+        if (error.response) {
+            console.error('Error Response Data:', JSON.stringify(error.response.data));
+            console.error('Error Status:', error.response.status);
+        }
+        res.status(401).json({
+            message: 'MojoAuth verification failed',
+            details: error.message
+        });
     }
 };
 

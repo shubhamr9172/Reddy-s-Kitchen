@@ -19,7 +19,8 @@ const Login = () => {
                     await loginWithMojo(response.oauth.access_token || response.oauth.id_token);
                 } catch (err) {
                     console.error('Login Error:', err);
-                    setError(err.response?.data?.message || 'Verification failed. Check your Backend logs.');
+                    const msg = err.response?.data?.details || err.response?.data?.message || 'Verification failed';
+                    setError(`MojoAuth Error: ${msg}`);
                     setLoading(false);
                 }
             }
