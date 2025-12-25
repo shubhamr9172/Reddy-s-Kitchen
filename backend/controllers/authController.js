@@ -3,6 +3,11 @@ const OTP = require('../models/OTP');
 const jwt = require('jsonwebtoken');
 const { sendOTP } = require('../utils/mailer');
 const crypto = require('crypto');
+const mojoauth = require('mojoauth-sdk');
+
+const ma = mojoauth({
+    apiKey: process.env.MOJOAUTH_API_KEY || "test-4c796e67-3bbd-41f5-9dfb-296e383401fa",
+});
 
 // Generate 6-digit OTP
 const generateOTP = () => {
@@ -87,6 +92,52 @@ const verifyOTP = async (req, res) => {
     }
 };
 
+const verifyMojoToken = async (req, res) => {
+    const { mojoToken } = req.body;
+
+    if (!mojoToken) {
+        return res.status(400).json({ message: 'MojoAuth token is required' });
+    }
+
+    try {
+        const response = await ma.mojoAPI.verifyToken(mojoToken);
+        
+        if (!response || !response.authenticated) {
+            return res.status(401).json({ message: 'MojoAuth verification failed' });
+        }
+
+        const email = response.user.identifier;
+
+        // Find or create user
+        let user = await User.findOne({ email });
+        if (!user) {
+            user = await User.create({ email });
+        }
+
+        // Create Our JWT
+        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+            expiresIn: '30d',
+        });
+
+        // Set cookie
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 30 * 24 * 60 * 60 * 1000,
+        });
+
+        res.status(200).json({
+            _id: user._id,
+            email: user.email,
+            groupId: user.groupId,
+        });
+    } catch (error) {
+        console.error('MojoAuth Error:', error);
+        res.status(401).json({ message: 'Invalid token' });
+    }
+};
+
 const logout = (req, res) => {
     res.cookie('token', '', {
         httpOnly: true,
@@ -104,4 +155,4 @@ const getMe = async (req, res) => {
     }
 };
 
-module.exports = { requestOTP, verifyOTP, logout, getMe };
+module.exports = { requestOTP, verifyOTP, verifyMojoToken, logout, getMe };
